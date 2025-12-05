@@ -1,0 +1,47 @@
+{
+  "name": "@dropinblog-react-core",
+  "version": "1.0.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "Framework agnostic DropInBlog core utilities, router, and React helpers",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --dts --format esm,cjs",
+    "dev": "tsup src/index.ts --dts --format esm,cjs --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "dropinblog",
+    "react",
+    "router",
+    "blog"
+  ],
+  "author": "DropInBlog",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0-0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^18.3.7",
+    "tsup": "^8.1.0",
+    "typescript": "^5.5.4"
+  }
+}
