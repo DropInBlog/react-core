@@ -4,6 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
+  "repository": "https://github.com/DropInBlog/react-core",
   "description": "Framework agnostic DropInBlog core utilities, router, and React helpers",
   "type": "module",
   "main": "dist/index.cjs",
