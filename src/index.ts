@@ -22,6 +22,7 @@ export type {
   RenderedResponse,
 } from './types';
 export type { RouteState } from './hooks';
+export type { HeadDescriptor } from './head';
 
 import { DropInBlogClient } from './client';
 import { resolveConfig } from './config';
