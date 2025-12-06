@@ -24,6 +24,7 @@ const joinSearchParams = (
 
 export class DropInBlogClient {
   private cache = new Map<string, CacheEntry<RenderedResponse>>();
+  private inflight = new Map<string, Promise<RenderedResponse>>();
 
   constructor(private readonly config: ResolvedDropInBlogConfig) {}
 
@@ -59,8 +60,30 @@ export class DropInBlogClient {
       if (cached && cached.expiresAt > Date.now()) {
         return cached.data as T;
       }
+
+      const existing = this.inflight.get(cacheKey);
+      if (existing) {
+        return existing as Promise<T>;
+      }
     }
 
+    const promise = this.performRequest<T>(url, cacheKey, options.skipCache ?? false);
+
+    if (!options.skipCache) {
+      this.inflight.set(cacheKey, promise as Promise<RenderedResponse>);
+      promise.finally(() => {
+        this.inflight.delete(cacheKey);
+      });
+    }
+
+    return promise;
+  }
+
+  private async performRequest<T extends RenderedResponse = RenderedResponse>(
+    url: URL,
+    cacheKey: string,
+    skipCache: boolean
+  ): Promise<T> {
     const response = await this.config.fetchImpl(url.toString(), {
       headers: {
         Accept: 'application/json',
@@ -78,7 +101,7 @@ export class DropInBlogClient {
     const json = (await response.json()) as { data: T } | T;
     const data = 'data' in json ? json.data : json;
 
-    if (!options.skipCache) {
+    if (!skipCache) {
       this.cache.set(cacheKey, {
         data,
         expiresAt: Date.now() + this.config.cacheTtlMs,
