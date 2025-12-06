@@ -2,12 +2,6 @@ import React, { ReactNode, useEffect, useRef, forwardRef } from 'react';
 import { applyHeadData, buildHeadDescriptors, HeadDescriptor } from './head';
 import { HeadData, HeadItems } from './types';
 
-declare global {
-  interface Window {
-    openSearchDialog?: () => void;
-  }
-}
-
 type ContentTag = 'article' | 'section' | 'div';
 
 export interface DropInBlogContentProps
@@ -16,29 +10,6 @@ export interface DropInBlogContentProps
   bodyHtml?: string;
   children?: ReactNode;
 }
-
-const ensureDropInBlogGlobals = () => {
-  if (typeof window === 'undefined') return;
-  if (typeof window.openSearchDialog !== 'function') {
-    window.openSearchDialog = () => {};
-  }
-};
-
-const wireSearchTriggers = (root: HTMLElement) => {
-  if (typeof window === 'undefined') return;
-  const triggers = root.querySelectorAll('[data-open-search], .dib-open-search, .dib-search-icon');
-  triggers.forEach((trigger) => {
-    trigger.removeEventListener('click', handleSearchClick);
-    trigger.addEventListener('click', handleSearchClick);
-  });
-};
-
-const handleSearchClick = (event: Event) => {
-  event.preventDefault();
-  if (typeof window.openSearchDialog === 'function') {
-    window.openSearchDialog();
-  }
-};
 
 const INLINE_SIGNATURE_ATTR = 'data-dropinblog-inline-signature';
 const INLINE_SCRIPT_ATTR = 'data-dropinblog-script-executed';
@@ -60,7 +31,6 @@ export const DropInBlogContent = forwardRef<HTMLElement, DropInBlogContentProps>
     children,
     ...rest
   }, forwardedRef) => {
-    ensureDropInBlogGlobals();
     const containerRef = useRef<HTMLElement | null>(null);
 
     useEffect(() => {
@@ -69,7 +39,6 @@ export const DropInBlogContent = forwardRef<HTMLElement, DropInBlogContentProps>
       if (!node) return;
       const signature = hashBodyHtml(bodyHtml);
       if (node.getAttribute(INLINE_SIGNATURE_ATTR) === signature) {
-        wireSearchTriggers(node);
         return;
       }
       const scripts = Array.from(node.querySelectorAll('script'));
@@ -90,7 +59,6 @@ export const DropInBlogContent = forwardRef<HTMLElement, DropInBlogContentProps>
           console.error('Failed to execute DropInBlog inline script', error);
         }
       });
-      wireSearchTriggers(node);
       node.setAttribute(INLINE_SIGNATURE_ATTR, signature);
     }, [bodyHtml]);
 
