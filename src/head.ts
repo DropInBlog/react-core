@@ -1,4 +1,4 @@
-import { HeadData, HeadItem, HeadItems, MaybeArray } from './types';
+import { HeadData, HeadItem, HeadItems, MaybeArray, ScriptDescriptor } from './types';
 
 export interface HeadDescriptor {
   tag: string;
@@ -10,9 +10,12 @@ const MANAGED_ATTR = 'data-dropinblog-managed';
 const PERSIST_ATTR = 'data-dropinblog-persist';
 const loadedExternalScripts = new Set<string>();
 
-const toArray = (value?: MaybeArray<string>): string[] => {
+const toArray = <T>(value?: MaybeArray<T>): T[] => {
   if (!value) return [];
-  return Array.isArray(value) ? value.filter(Boolean) : [value];
+  if (Array.isArray(value)) {
+    return value.filter((item): item is T => item !== undefined && item !== null);
+  }
+  return [value];
 };
 
 const pushMeta = (
@@ -83,6 +86,32 @@ const descriptorSignature = (descriptor: HeadDescriptor) => {
   return `${tag}|${attrs}|${content}`;
 };
 
+const normalizeScriptAttributes = (entry: ScriptDescriptor) => {
+  if (typeof entry === 'string') {
+    return { src: entry, defer: 'true' } as Record<string, string>;
+  }
+
+  const attributes: Record<string, string> = {};
+  Object.entries(entry).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    if (typeof value === 'boolean') {
+      attributes[key] = value ? 'true' : 'false';
+    } else {
+      attributes[key] = value;
+    }
+  });
+
+  if (!attributes.src) {
+    throw new Error('Script descriptor requires a src attribute.');
+  }
+
+  if (!('defer' in attributes) && attributes.type !== 'module') {
+    attributes.defer = 'true';
+  }
+
+  return attributes;
+};
+
 interface ManagedDocument extends Document {
   __dropinblogHeadSignature?: string;
 }
@@ -93,7 +122,6 @@ export function buildHeadDescriptors(
 ): HeadDescriptor[] {
   const descriptors: HeadDescriptor[] = [];
   const headItems = normalizeHeadItems(headItemsInput);
-
   headItems.forEach((item) => {
     if (!item.tag) return;
     descriptors.push({
@@ -107,46 +135,19 @@ export function buildHeadDescriptors(
 
   if (headData.title) {
     descriptors.push({ tag: 'title', content: headData.title });
+    pushMeta(descriptors, { property: 'og:title', content: headData.title });
+    pushMeta(descriptors, { name: 'twitter:title', content: headData.title });
   }
 
   if (headData.description) {
     pushMeta(descriptors, { name: 'description', content: headData.description });
+    pushMeta(descriptors, { property: 'og:description', content: headData.description });
+    pushMeta(descriptors, { name: 'twitter:description', content: headData.description });
   }
 
-  if (headData['og:title']) {
-    pushMeta(descriptors, { property: 'og:title', content: headData['og:title'] });
-  }
-
-  if (headData['og:description']) {
-    pushMeta(descriptors, {
-      property: 'og:description',
-      content: headData['og:description'],
-    });
-  }
-
-  if (headData['og:image']) {
-    pushMeta(descriptors, { property: 'og:image', content: headData['og:image'] });
-  }
-
-  if (headData['twitter:title']) {
-    pushMeta(descriptors, {
-      name: 'twitter:title',
-      content: headData['twitter:title'],
-    });
-  }
-
-  if (headData['twitter:description']) {
-    pushMeta(descriptors, {
-      name: 'twitter:description',
-      content: headData['twitter:description'],
-    });
-  }
-
-  if (headData['twitter:image']) {
-    pushMeta(descriptors, {
-      name: 'twitter:image',
-      content: headData['twitter:image'],
-    });
+  if (headData.image) {
+    pushMeta(descriptors, { property: 'og:image', content: headData.image });
+    pushMeta(descriptors, { name: 'twitter:image', content: headData.image });
   }
 
   if (headData.canonical_url) {
@@ -183,11 +184,16 @@ export function buildHeadDescriptors(
     });
   });
 
-  toArray(headData.js).forEach((src) => {
-    descriptors.push({
-      tag: 'script',
-      attributes: { src, defer: 'true' },
-    });
+  toArray(headData.js).forEach((script) => {
+    try {
+      const attributes = normalizeScriptAttributes(script);
+      descriptors.push({
+        tag: 'script',
+        attributes,
+      });
+    } catch (error) {
+      console.error('Failed to normalize DropInBlog script descriptor', error);
+    }
   });
 
   toArray(headData.css).forEach((css) => {
@@ -215,6 +221,45 @@ function getDocument(target?: Document) {
     return document;
   }
   return undefined;
+}
+
+function removeConflictingElement(head: HTMLHeadElement, descriptor: HeadDescriptor) {
+  const tag = descriptor.tag.toLowerCase();
+
+  if (tag === 'meta') {
+    const name = descriptor.attributes?.name;
+    const property = descriptor.attributes?.property;
+
+    if (name) {
+      head.querySelectorAll(`meta[name="${name}"]`).forEach((node) => {
+        if (!node.hasAttribute(MANAGED_ATTR)) {
+          node.remove();
+        }
+      });
+    } else if (property) {
+      head.querySelectorAll(`meta[property="${property}"]`).forEach((node) => {
+        if (!node.hasAttribute(MANAGED_ATTR)) {
+          node.remove();
+        }
+      });
+    }
+  } else if (tag === 'link') {
+    const rel = descriptor.attributes?.rel;
+    if (rel) {
+      head.querySelectorAll(`link[rel="${rel}"]`).forEach((node) => {
+        if (!node.hasAttribute(MANAGED_ATTR)) {
+          node.remove();
+        }
+      });
+    }
+  } else if (tag === 'title') {
+      head.querySelectorAll('title').forEach((node) => {
+          if (!node.hasAttribute(MANAGED_ATTR)) {
+              node.remove();
+          }
+      });
+  }
+
 }
 
 function createElement(doc: Document, descriptor: HeadDescriptor) {
@@ -272,17 +317,13 @@ export function applyHeadData(
     node.remove();
   });
 
-  if (headData?.title) {
-    head.querySelectorAll('title').forEach((node) => node.remove());
-    doc.title = headData.title;
-  }
-
   if (!descriptors.length) {
     managedDoc.__dropinblogHeadSignature = signature;
     return;
   }
 
   descriptors.forEach((descriptor) => {
+    removeConflictingElement(head, descriptor);
     const element = createElement(doc, descriptor);
     if (!element) return;
     head.appendChild(element);

@@ -1,14 +1,19 @@
 export type MaybeArray<T> = T | T[];
 
+export type ScriptDescriptor =
+  | string
+  | {
+      src: string;
+      type?: string;
+      async?: boolean;
+      defer?: boolean;
+      [attribute: string]: string | boolean | undefined;
+    };
+
 export type HeadData = {
   title?: string;
   description?: string;
-  'og:title'?: string;
-  'og:description'?: string;
-  'og:image'?: string;
-  'twitter:title'?: string;
-  'twitter:description'?: string;
-  'twitter:image'?: string;
+  image?: string;
   canonical_url?: string;
   rss_url?: string;
   seo_url_next?: string;
@@ -16,7 +21,7 @@ export type HeadData = {
   schema?: string | Record<string, unknown>;
   noindex?: boolean;
   fonts?: MaybeArray<string>;
-  js?: MaybeArray<string>;
+  js?: MaybeArray<ScriptDescriptor>;
   css?: MaybeArray<string>;
 };
 
