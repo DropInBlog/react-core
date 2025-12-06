@@ -14,8 +14,6 @@ Framework agnostic React helpers, router utilities, and an API client for the Dr
 npm install @dropinblog/react-core
 # or
 yarn add @dropinblog/react-core
-# or
-pnpm add @dropinblog/react-core
 ```
 
 ## Configuration
@@ -23,19 +21,20 @@ pnpm add @dropinblog/react-core
 Set your credentials in the environment (recommended):
 
 ```bash
-# .env
-DROPINBLOG_BLOG_ID=your_dropinblog_id
+# For Node.js / SSR environments
+DROPINBLOG_BLOG_ID=your_dropinblog_blog_id
 DROPINBLOG_API_TOKEN=your_dropinblog_api_token
-DROPINBLOG_BASE_PATH=news
+
+# For Vite / browser-only builds, add VITE_ prefix
+VITE_DROPINBLOG_BLOG_ID=your_dropinblog_blog_id
+VITE_DROPINBLOG_API_TOKEN=your_dropinblog_api_token
 ```
 
-
-
-The provider automatically loads credentials from the environment when `blogId` and `apiToken` props are omitted.
-
-## Routing primitives
+## Routing
 
 `@dropinblog/react-core` ships a mini-router independent of any framework.
+
+**Note:** If you're already using [wouter](https://github.com/molefrog/wouter) in your app, use our wouter integration package `@dropinblog/react-wouter` instead.
 
 Supported route patterns (base path defaults to `/blog` but is configurable):
 

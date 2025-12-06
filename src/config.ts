@@ -6,10 +6,21 @@ const DEFAULT_FIELDS = ['head_data', 'body_html', 'head_items', 'head_html'];
 const DEFAULT_CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 
 function readEnv(key: string): string | undefined {
+  // Check process.env (Node.js, SSR)
   // eslint-disable-next-line no-undef
   if (typeof process !== 'undefined' && process?.env) {
-    return process.env[key];
+    const value = process.env[key];
+    if (value) return value;
   }
+
+  // Check import.meta.env (Vite, build tools)
+  // @ts-ignore - import.meta.env may not exist in all environments
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    // @ts-ignore
+    const value = import.meta.env[key] ?? import.meta.env[`VITE_${key}`];
+    if (value) return value;
+  }
+
   return undefined;
 }
 
