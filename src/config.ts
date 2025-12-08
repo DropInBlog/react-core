@@ -9,8 +9,13 @@ function readEnv(key: string): string | undefined {
   // Check process.env (Node.js, SSR)
   // eslint-disable-next-line no-undef
   if (typeof process !== 'undefined' && process?.env) {
+    // Check for exact key first
     const value = process.env[key];
     if (value) return value;
+
+    // Check for NEXT_PUBLIC_ prefixed version (Next.js client-side)
+    const nextPublicValue = process.env[`NEXT_PUBLIC_${key}`];
+    if (nextPublicValue) return nextPublicValue;
   }
 
   // Check import.meta.env (Vite, build tools)
@@ -51,11 +56,11 @@ export function resolveConfig(config: DropInBlogConfig = {}): ResolvedDropInBlog
   const apiToken = config.apiToken ?? readEnv('DROPINBLOG_API_TOKEN');
 
   if (!blogId) {
-    throw new Error('A DropInBlog blogId is required. Set config.blogId or DROPINBLOG_BLOG_ID.');
+    throw new Error('A DropInBlog blogId is required. Set config.blogId, DROPINBLOG_BLOG_ID, or NEXT_PUBLIC_DROPINBLOG_BLOG_ID.');
   }
   if (!apiToken) {
     throw new Error(
-      'A DropInBlog API token is required. Set config.apiToken or DROPINBLOG_API_TOKEN.'
+      'A DropInBlog API token is required. Set config.apiToken, DROPINBLOG_API_TOKEN, or NEXT_PUBLIC_DROPINBLOG_API_TOKEN.'
     );
   }
 
