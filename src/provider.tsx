@@ -1,3 +1,5 @@
+'use client';
+
 import React, { ReactNode, createContext, useContext, useMemo } from 'react';
 import { DropInBlogClient } from './client';
 import { resolveConfig } from './config';

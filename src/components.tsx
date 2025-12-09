@@ -1,3 +1,5 @@
+'use client';
+
 import React, { ReactNode, useEffect, useRef, forwardRef } from 'react';
 import { applyHeadData, buildHeadDescriptors, HeadDescriptor } from './head';
 import { HeadData, HeadItems } from './types';
