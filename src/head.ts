@@ -201,10 +201,17 @@ export function buildHeadDescriptors(
   });
 
   if (headData.schema) {
-    const content =
+    let content =
       typeof headData.schema === 'string'
         ? headData.schema
         : JSON.stringify(headData.schema);
+
+    // If the API already returns the content wrapped in script tags, extract just the JSON
+    const scriptTagMatch = content.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/i);
+    if (scriptTagMatch) {
+      content = scriptTagMatch[1].trim();
+    }
+
     descriptors.push({
       tag: 'script',
       attributes: { type: 'application/ld+json' },
