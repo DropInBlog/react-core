@@ -41,6 +41,13 @@ export class DropInBlogClient {
 
     joinSearchParams(options.searchParams, url);
 
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      url.searchParams.set(
+        'blogurl',
+        window.location.origin + this.config.basePath
+      );
+    }
+
     return url;
   }
 
