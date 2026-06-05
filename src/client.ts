@@ -78,9 +78,15 @@ export class DropInBlogClient {
 
     if (!options.skipCache) {
       this.inflight.set(cacheKey, promise as Promise<RenderedResponse>);
-      promise.finally(() => {
-        this.inflight.delete(cacheKey);
-      });
+      // Track completion to clear the in-flight entry. The trailing `.catch`
+      // swallows rejections on THIS chain only so a failed request (e.g. a 404)
+      // doesn't surface as an unhandledRejection and crash the host process.
+      // The original `promise` is still returned, so callers receive the error.
+      promise
+        .finally(() => {
+          this.inflight.delete(cacheKey);
+        })
+        .catch(() => undefined);
     }
 
     return promise;
