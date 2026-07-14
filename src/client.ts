@@ -97,12 +97,15 @@ export class DropInBlogClient {
     cacheKey: string,
     skipCache: boolean
   ): Promise<T> {
-    const response = await this.config.fetchImpl(url.toString(), {
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${this.config.apiToken}`,
-      },
-    });
+    const headers: Record<string, string> = {
+      Accept: 'application/json',
+      Authorization: `Bearer ${this.config.apiToken}`,
+    };
+    if (this.config.packageSource) {
+      headers['X-Dib-Package'] = this.config.packageSource;
+    }
+
+    const response = await this.config.fetchImpl(url.toString(), { headers });
 
     if (!response.ok) {
       const errorPayload = await response.text();

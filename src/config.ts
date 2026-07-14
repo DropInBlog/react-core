@@ -4,6 +4,10 @@ const DEFAULT_BASE_PATH = 'blog';
 const DEFAULT_API_BASE_URL = 'https://api.dropinblog.com/v2';
 const DEFAULT_FIELDS = ['head_data', 'body_html', 'head_items', 'head_html'];
 const DEFAULT_CACHE_TTL = 1000 * 60 * 5; // 5 minutes
+const DEFAULT_PACKAGE_SOURCE =
+  typeof __DIB_PACKAGE_VERSION__ !== 'undefined'
+    ? `react@${__DIB_PACKAGE_VERSION__}`
+    : 'react';
 
 function readEnv(key: string): string | undefined {
   // Check process.env (Node.js, SSR)
@@ -76,6 +80,7 @@ export function resolveConfig(config: DropInBlogConfig = {}): ResolvedDropInBlog
     fetchImpl: ensureFetch(config.fetchImpl),
     cacheTtlMs: config.cacheTtlMs ?? DEFAULT_CACHE_TTL,
     defaultFields: config.defaultFields ?? DEFAULT_FIELDS,
+    packageSource: config.packageSource ?? DEFAULT_PACKAGE_SOURCE,
   };
 }
 

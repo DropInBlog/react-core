@@ -83,6 +83,7 @@ export interface DropInBlogConfig {
   fetchImpl?: typeof fetch;
   cacheTtlMs?: number;
   defaultFields?: string[];
+  packageSource?: string; // e.g. react@1.0.12, sent as the X-Dib-Package header
 }
 
 export interface ResolvedDropInBlogConfig {
@@ -95,4 +96,5 @@ export interface ResolvedDropInBlogConfig {
   fetchImpl: typeof fetch;
   cacheTtlMs: number;
   defaultFields: string[];
+  packageSource?: string; // optional so adapters constructing this literal build without it
 }
