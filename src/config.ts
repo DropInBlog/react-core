@@ -33,6 +33,16 @@ function readEnv(key: string): string | undefined {
   return undefined;
 }
 
+// resolveConfig runs on every provider remount, so each deprecation is
+// reported once per process rather than once per call.
+const warned = new Set<string>();
+
+function warnOnce(message: string): void {
+  if (warned.has(message)) return;
+  warned.add(message);
+  console.warn(`[@dropinblog/react-core] ${message}`);
+}
+
 function ensureFetch(fetchImpl?: typeof fetch): typeof fetch {
   if (fetchImpl) return fetchImpl;
   if (typeof globalThis.fetch === 'function') {
@@ -57,22 +67,33 @@ function normalizeBasePath(input?: string) {
 
 export function resolveConfig(config: DropInBlogConfig = {}): ResolvedDropInBlogConfig {
   const blogId = config.blogId ?? readEnv('DROPINBLOG_BLOG_ID');
-  const apiToken = config.apiToken ?? readEnv('DROPINBLOG_API_TOKEN');
+  // Props beat env vars; the current names beat the legacy ones they replaced.
+  // Blank values fall through so a half-finished rename still authenticates.
+  const apiKey =
+    config.apiKey || config.apiToken || readEnv('DROPINBLOG_API_KEY') || readEnv('DROPINBLOG_API_TOKEN');
 
   if (!blogId) {
     throw new Error('A DropInBlog blogId is required. Set config.blogId, DROPINBLOG_BLOG_ID, or NEXT_PUBLIC_DROPINBLOG_BLOG_ID.');
   }
-  if (!apiToken) {
+  if (!apiKey) {
     throw new Error(
-      'A DropInBlog API token is required. Set config.apiToken, DROPINBLOG_API_TOKEN, or NEXT_PUBLIC_DROPINBLOG_API_TOKEN.'
+      'A DropInBlog API key is required. Set config.apiKey, DROPINBLOG_API_KEY, or NEXT_PUBLIC_DROPINBLOG_API_KEY.'
     );
+  }
+
+  if (!config.apiKey) {
+    if (config.apiToken) {
+      warnOnce('The "apiToken" option is deprecated — rename it to "apiKey".');
+    } else if (!readEnv('DROPINBLOG_API_KEY')) {
+      warnOnce('DROPINBLOG_API_TOKEN is deprecated — rename it to DROPINBLOG_API_KEY.');
+    }
   }
 
   const { basePath, baseSegment, baseParts } = normalizeBasePath(config.basePath);
 
   return {
     blogId,
-    apiToken,
+    apiKey,
     basePath,
     baseSegment,
     baseParts,

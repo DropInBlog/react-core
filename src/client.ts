@@ -99,7 +99,9 @@ export class DropInBlogClient {
   ): Promise<T> {
     const headers: Record<string, string> = {
       Accept: 'application/json',
-      Authorization: `Bearer ${this.config.apiToken}`,
+      // apiToken fallback keeps a resolved config from an older adapter
+      // package (which still sets the legacy field) authenticating.
+      Authorization: `Bearer ${this.config.apiKey || this.config.apiToken}`,
     };
     if (this.config.packageSource) {
       headers['X-Dib-Package'] = this.config.packageSource;

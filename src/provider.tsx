@@ -24,6 +24,7 @@ export const DropInBlogProvider: React.FC<DropInBlogProviderProps> = ({
 }) => {
   const resolvedConfig = useMemo(() => resolveConfig(config), [
     config.blogId,
+    config.apiKey,
     config.apiToken,
     config.basePath,
     config.apiBaseUrl,

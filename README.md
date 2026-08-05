@@ -23,11 +23,11 @@ Set your credentials in the environment (recommended):
 ```bash
 # For Node.js / SSR environments
 DROPINBLOG_BLOG_ID=your_dropinblog_blog_id
-DROPINBLOG_API_TOKEN=your_dropinblog_api_token
+DROPINBLOG_API_KEY=your_dropinblog_api_key
 
 # For Vite / browser-only builds, add VITE_ prefix
 VITE_DROPINBLOG_BLOG_ID=your_dropinblog_blog_id
-VITE_DROPINBLOG_API_TOKEN=your_dropinblog_api_token
+VITE_DROPINBLOG_API_KEY=your_dropinblog_api_key
 ```
 
 ## Routing
@@ -69,7 +69,7 @@ You can also pass credentials and options explicitly:
 ```tsx
 <DropInBlogProvider
   blogId="your_blog_id"
-  apiToken="your_api_token"
+  apiKey="your_api_key"
   basePath="/news"        {/* default: "/blog" */}
   cacheTtlMs={60_000}     {/* default: 5 minutes */}
 >

@@ -77,6 +77,8 @@ export interface RouteMatch {
 
 export interface DropInBlogConfig {
   blogId?: string;
+  apiKey?: string;
+  /** @deprecated Renamed to apiKey. */
   apiToken?: string;
   basePath?: string;
   apiBaseUrl?: string;
@@ -88,7 +90,12 @@ export interface DropInBlogConfig {
 
 export interface ResolvedDropInBlogConfig {
   blogId: string;
-  apiToken: string;
+  apiKey: string;
+  /**
+   * @deprecated Renamed to apiKey. Still read at request time so a resolved
+   * config built by an older adapter package keeps authenticating.
+   */
+  apiToken?: string;
   basePath: string; // e.g. /blog or /resources/blog
   baseSegment: string; // e.g. blog or resources/blog
   baseParts: string[];
