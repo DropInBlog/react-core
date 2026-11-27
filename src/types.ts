@@ -54,6 +54,11 @@ export interface DropInBlogApiResponse {
   success: boolean;
 }
 
+export interface FetchPostOptions {
+  /** The ?preview token from the admin's Preview Post link; returns a draft or scheduled post. */
+  preview?: string;
+}
+
 export interface RouteResolution {
   match: RouteMatch;
   payload: RenderedResponse;

@@ -1,4 +1,4 @@
-import { RenderedResponse, ResolvedDropInBlogConfig } from './types';
+import { FetchPostOptions, RenderedResponse, ResolvedDropInBlogConfig } from './types';
 
 interface CacheEntry<T> {
   data: T;
@@ -151,8 +151,13 @@ export class DropInBlogClient {
     });
   }
 
-  fetchPost(slug: string) {
-    return this.request(`post/${encodeURIComponent(slug)}`);
+  fetchPost(slug: string, options: FetchPostOptions = {}) {
+    // A preview is a draft or scheduled post that is still being edited, so it
+    // skips the cache to always show the latest saved version.
+    return this.request(`post/${encodeURIComponent(slug)}`, {
+      searchParams: { preview: options.preview || undefined },
+      skipCache: !!options.preview,
+    });
   }
 
   fetchSitemap() {

@@ -12,5 +12,6 @@ export type {
   RouteMatch,
   RouteResolution,
   RenderedResponse,
+  FetchPostOptions,
 } from './types';
 export type { HeadDescriptor } from './head';

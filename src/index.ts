@@ -20,6 +20,7 @@ export type {
   RouteMatch,
   RouteResolution,
   RenderedResponse,
+  FetchPostOptions,
 } from './types';
 export type { RouteState } from './hooks';
 export type { HeadDescriptor } from './head';
